@@ -1,0 +1,11 @@
+[project]
+name = "fa26-mistry-monalben-comp-699-a"
+version = "0.1.0"
+requires-python = ">=3.13"
+dependencies = [
+    "langchain>=1.4.5",
+    "langchain-chroma>=1.1.0",
+    "langchain-ollama>=1.1.0",
+    "pypdf>=6.20.1",
+    "streamlit>=1.65.0",
+]

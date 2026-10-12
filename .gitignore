@@ -1,0 +1,29 @@
+# Python cache files
+__pycache__/
+*.py[cod]
+
+# Virtual environment
+.venv/
+
+# Environment variables and secrets
+.env
+.env.*
+
+# Allow an example environment file if needed later
+!.env.example
+
+# Local research papers
+data/papers/*
+!data/papers/.gitkeep
+
+# Local ChromaDB database
+data/chroma/
+
+# Test and coverage output
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Editor and operating system files
+.DS_Store
+.vscode/
