@@ -1,17 +1,20 @@
 from pypdf import PdfReader
 
-def extract_text_from_pdf(pdf_file):
+def extract_pages_from_pdf(pdf_file):
     """
     Extracts text from a PDF file."""
     reader = PdfReader(pdf_file)
 
-    page_text = []
-    for page in reader.pages:
-        text=page.extract_text()
-        page_text.append(text)
+    pages = []
     
-    full_text="\n\n".join(page_text)
-    return len(reader.pages), full_text
+    for page_number,page in enumerate(reader.pages,start=1):
+        text = page.extract_text()
+        pages.append({
+            "page": page_number,
+            "text": text or "",
+        })
+     
+    return len(reader.pages), pages
 
 
 
