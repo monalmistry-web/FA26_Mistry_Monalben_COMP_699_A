@@ -4,6 +4,7 @@ import hashlib
 from ingestion.pdf_loader import extract_pages_from_pdf
 from ingestion.text_splitter import split_pages_into_chunks
 from retrieval.vector_store import (create_vector_store,add_chunks_to_vector_store,search_similar_chunks)
+from generation.answer_generator import generate_answer
 
 st.set_page_config(page_title="Academic Research Paper Assistant",page_icon=":books:",layout="wide")
 
@@ -54,10 +55,24 @@ if uploaded_file is not None:
                         k=3)
 
                 if results:
+                    # Display the retrived passages.
                     for index, result in enumerate(results, start=1):
                         st.write(f"**Result {index} - Page {result.metadata['page']}**")
 
                         st.write(result.page_content)
+                    # Prepare context for the language model.
+                    context = "\n\n".join(
+                        f"[Page {result.metadata['page']}\n{result.page_content}]"
+                        for result in results
+                    )
+
+                    # Generate an answer using the retrived context.
+                    with st.spinner("Generating answer..."):
+                        answer = generate_answer(question,context)
+
+                    st.subheader("Generated Answer")
+                    st.write(answer)
+                    
                 else:
                     st.info("No relevant passages were found.")
             else:
