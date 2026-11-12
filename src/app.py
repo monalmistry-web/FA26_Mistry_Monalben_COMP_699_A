@@ -52,7 +52,7 @@ if uploaded_file is not None:
                         vector_store,
                         question,
                         source_id,
-                        k=3)
+                        k=5)
 
                 if results:
                     # Display the retrived passages.
