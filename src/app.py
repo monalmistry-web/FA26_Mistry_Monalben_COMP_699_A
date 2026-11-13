@@ -80,4 +80,4 @@ if uploaded_file is not None:
 
         
     except Exception as error:
-        st.error(f"Error details: {error}")
+        st.error(str(error))
