@@ -1,4 +1,6 @@
 from langchain_ollama import ChatOllama
+from ollama import ResponseError
+from httpx import ConnectError, TimeoutException
 
 def generate_answer(question,context):
     """Generate an answer using retrieved research paper passages."""
@@ -6,6 +8,8 @@ def generate_answer(question,context):
     llm = ChatOllama(
         model="llama3.2",
         temperature=0,
+        # For manual connection-error testing, temporarily use:
+        # base_url="http://localhost:11435",
     )
 
     prompt = f"""
@@ -38,6 +42,19 @@ def generate_answer(question,context):
     Answer:
 
     """
-    response = llm.invoke(prompt)
+    try:
+        response = llm.invoke(prompt)
+
+    except ConnectError as error:
+        raise RuntimeError( "Ollama is not running. Please start Ollama and try again.")from error
+
+    except TimeoutException as error:
+        raise RuntimeError("Ollama took too long to respond. Please try again.")from error
+
+    except ResponseError as error:
+        if error.status_code == 404:
+            raise RuntimeError("The required model 'llama3.2' is not installed. " "Please download it using 'ollama pull llama3.2'.")from error
+        raise RuntimeError(f"Ollama returned an error: {error.error}") from error
+
 
     return response.content
