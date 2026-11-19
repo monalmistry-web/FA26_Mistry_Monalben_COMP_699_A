@@ -49,4 +49,16 @@ def search_similar_chunks(vector_store, question, source_id, k=3):
 
     )
     return results
+
+
+def search_mmr_chunks(vector_store, question, source_id, k=5):
+    """ Find relevant and diverse chunks using MMR retrieval."""
+    results = vector_store.max_marginal_relevance_search(
+        question,
+        k=k,
+        fetch_k=20,
+        lambda_mult=0.5,
+        filter={"source_id": source_id},
+    )
+    return results
     

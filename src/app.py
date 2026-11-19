@@ -1,10 +1,23 @@
 import streamlit as st
 import hashlib
+import re
 
 from ingestion.pdf_loader import extract_pages_from_pdf
 from ingestion.text_splitter import split_pages_into_chunks
-from retrieval.vector_store import (create_vector_store,add_chunks_to_vector_store,search_similar_chunks)
-from generation.answer_generator import generate_answer
+from retrieval.vector_store import (create_vector_store,add_chunks_to_vector_store,search_similar_chunks,search_mmr_chunks)
+from generation.answer_generator import (
+    generate_answer,
+    validate_answer_citations,
+)
+
+def is_reference_list_chunk(text):
+    """Identify chunks containing multiple bibliography entries."""
+    reference_entries = re.findall(
+        r"\[\d{1,3}\]\s+[A-Z][A-Za-zÀ-ÿ.'’-]*\s+[A-Z]",
+        text
+    )
+
+    return len(reference_entries) >= 2
 
 st.set_page_config(page_title="Academic Research Paper Assistant",page_icon=":books:",layout="wide")
 
@@ -44,15 +57,25 @@ if uploaded_file is not None:
         st.subheader("Search Your Research Paper")
         question = st.text_input("Enter a question about your research paper:")
 
+        retrieval_method = st.radio("Select retrieval method:", ["Similarity Search", "MMR"],horizontal=True)
+
         if st.button("Search"):
             if question.strip():
                 with st.spinner("Searching for relevant passages..."):
                     vector_store = create_vector_store()
-                    results=search_similar_chunks(
-                        vector_store,
-                        question,
-                        source_id,
-                        k=5)
+                    if retrieval_method == "Similarity Search":
+                        results=search_similar_chunks(
+                            vector_store,
+                            question,
+                            source_id,
+                            k=5)
+                    else:
+                        results=search_mmr_chunks(
+                            vector_store,
+                            question,
+                            source_id,
+                            k=5
+                        )
 
                 if results:
                     # Display the retrived passages.
@@ -61,17 +84,38 @@ if uploaded_file is not None:
 
                         st.write(result.page_content)
                     # Prepare context for the language model.
+                    context_results = [
+                          result for result in results
+                          if not is_reference_list_chunk(result.page_content)]
+                    if not context_results:
+                         st.warning(
+                              "No usable passages were found after filtering reference entries.")
+                         st.stop()
                     context = "\n\n".join(
-                        f"[Page {result.metadata['page']}\n{result.page_content}]"
-                        for result in results
-                    )
+                        f"[Page {result.metadata['page']}]\n{result.page_content}"
+                        for result in context_results
+)
 
                     # Generate an answer using the retrived context.
+                    valid_pages = {
+                        result.metadata["page"]
+                        for result in context_results
+                    }
+
                     with st.spinner("Generating answer..."):
-                        answer = generate_answer(question,context)
+                        answer = generate_answer(question, context, valid_pages)
 
                     st.subheader("Generated Answer")
                     st.write(answer)
+
+                    citation_check = validate_answer_citations(answer, valid_pages)
+
+                    if not citation_check["has_citations"]:
+                         st.warning("Citation validation: The generated answer " "does not contain PDF page citations.")
+                    elif citation_check["invalid_pages"]:
+                         st.warning("Citation validation: The answer cites pages " "that were not in the retrieved context: " f"{citation_check['invalid_pages']}")
+                    else:
+                        st.info("Citation validation: All detected page citations " "refer to retrieved PDF pages.")
                     
                 else:
                     st.info("No relevant passages were found.")
