@@ -8,6 +8,7 @@ dependencies = [
     "langchain-ollama>=1.1.0",
     "langchain-text-splitters",
     "pypdf>=6.20.1",
+    "rank-bm25>=0.2.2",
     "streamlit>=1.65.0",
 ]
 
