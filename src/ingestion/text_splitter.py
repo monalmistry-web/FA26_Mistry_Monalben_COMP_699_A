@@ -1,5 +1,6 @@
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
+
 def split_pages_into_chunks(pages):
     """Split PDF pages into chunks while preserving page numbers."""
     splitter = RecursiveCharacterTextSplitter(

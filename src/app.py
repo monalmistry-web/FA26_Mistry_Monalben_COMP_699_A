@@ -1,15 +1,26 @@
-import streamlit as st
 import hashlib
 import re
 import time
+from itertools import zip_longest
 
-from ingestion.pdf_loader import extract_pages_from_pdf
-from ingestion.text_splitter import split_pages_into_chunks
-from retrieval.vector_store import (create_vector_store,add_chunks_to_vector_store,search_similar_chunks,search_mmr_chunks,split_question_into_queries,search_hybrid_chunks,expand_with_neighbor_chunks,)
+import streamlit as st
+
 from generation.answer_generator import (
     generate_answer,
     validate_answer_citations,
 )
+from ingestion.pdf_loader import extract_pages_from_pdf
+from ingestion.text_splitter import split_pages_into_chunks
+from retrieval.vector_store import (
+    add_chunks_to_vector_store,
+    create_vector_store,
+    expand_with_neighbor_chunks,
+    search_hybrid_chunks,
+    search_mmr_chunks,
+    search_similar_chunks,
+    split_question_into_queries,
+)
+
 
 def is_reference_list_chunk(text):
     """Identify chunks containing multiple bibliography entries."""
@@ -69,9 +80,10 @@ if uploaded_file is not None:
 
                     results = []
                     seen_chunks = set()
+                    query_results = []
 
-                    # Use 5 passages for a single question, or 3 per subquestion.
-                    k_per_query = 5 if len(queries) == 1 else 3
+                    # Retrieve up to 4 passages per query.
+                    k_per_query = 4
 
                     for query in queries:
                         if retrieval_method == "Similarity Search":
@@ -86,23 +98,29 @@ if uploaded_file is not None:
                         retrieved = [
                             doc for doc in retrieved
                             if not is_reference_list_chunk(doc.page_content)]
-                        for result in retrieved:
-                            chunk_key = (
-                                result.metadata.get("page"),
-                                result.page_content,)
-
-                            if chunk_key not in seen_chunks:
-                                seen_chunks.add(chunk_key)
-                                results.append(result)
+                        expanded = expand_with_neighbor_chunks(
+                            vector_store, retrieved, source_id, max_chunks=20
+                        )
+                        query_results.append(expanded)
                 retrieval_time = time.perf_counter() - retrieval_start
                 st.write(f"Retrieval time: {retrieval_time:.2f} seconds")
 
-                if results:
-                    results = expand_with_neighbor_chunks(
-                        vector_store,
-                        results,
-                        source_id,
-                        max_chunks=8,)
+                if query_results:
+                    for group in zip_longest(*query_results):
+                        for result in group:
+                            if result is None:
+                                continue
+                            chunk_key = (
+                                result.metadata.get("page"),
+                                result.page_content,
+                            )
+                            if chunk_key not in seen_chunks:
+                                seen_chunks.add(chunk_key)
+                                results.append(result)
+                            if len(results) >= 20:
+                                break
+                        if len(results) >= 20:
+                            break
 
                     # Display the retrieved passages.
                     for index, result in enumerate(results, start=1):
@@ -111,8 +129,10 @@ if uploaded_file is not None:
                         st.write(result.page_content)
                     # Prepare context for the language model.
                     context_results = [
-                          result for result in results
-                          if not is_reference_list_chunk(result.page_content)]
+                        result for result in results
+                        if not is_reference_list_chunk(result.page_content)]
+
+                    # Preserve retrieval ranking rather than grouping passages by page.
                     if not context_results:
                          st.warning(
                               "No usable passages were found after filtering reference entries.")
@@ -154,6 +174,5 @@ if uploaded_file is not None:
             else:
                 st.warning("Please enter a question.")
 
-        
     except Exception as error:
         st.error(str(error))

@@ -1,5 +1,6 @@
 from langchain_ollama import OllamaEmbeddings
 
+
 def get_embedding_model():
     """ create and return the local embedding model."""
     embeddings = OllamaEmbeddings(

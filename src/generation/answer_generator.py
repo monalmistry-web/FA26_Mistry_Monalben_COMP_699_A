@@ -1,7 +1,8 @@
+import re
+
+from httpx import ConnectError, TimeoutException
 from langchain_ollama import ChatOllama
 from ollama import ResponseError
-from httpx import ConnectError, TimeoutException
-import re
 
 
 def validate_answer_citations(answer, valid_pages):
@@ -53,8 +54,15 @@ def generate_answer(question, context, valid_pages=None):
     """Generate an answer using retrieved research paper passages."""
 
     llm = ChatOllama(
-        model="qwen2.5:7b",
-        temperature=0,
+    model="qwen2.5:7b",
+    temperature=0,
+    num_ctx=16384,
+    )
+
+    allowed_pages = (
+        sorted({int(page) for page in valid_pages})
+        if valid_pages is not None
+        else []
     )
 
     prompt = f"""
@@ -68,10 +76,46 @@ def generate_answer(question, context, valid_pages=None):
     2. Combine relevant evidence from multiple passages when necessary.
     3. Preserve the exact technical terms, categories, numbers, and relationships from the paper.
     4. Do not invent information, methods, categories, or page numbers.
-    5. When the question asks for a list, check all passages for every relevant item before answering.
+    5. When the question asks for categories, types, challenges,
+    strategies, or applications, first identify the relevant
+    section headings and named categories in the retrieved
+    passages. Include every category supported by the evidence.
+    Preserve the category names used in the paper. Do not
+    combine categories or omit categories mentioned in
+    different passages.
     6. Give a clear, concise explanation using only the retrieved evidence.
-    7. Cite the actual supporting PDF page for each factual statement using (Page N).
+    7. Cite each factual statement using exactly (Page N).
+    N must be a page number from the retrieved passages.
+    Never use [Page N] in the generated answer.
+    Never combine citations like (Page 2, [Page 2]).
+    Never cite a page that was not retrieved.
     8. If the passages do not contain enough information, explain what is missing.
+    9. The only permitted PDF page numbers are: {allowed_pages}.
+    10. Every citation must refer to evidence on that specific PDF page.
+    11. Do not cite a page merely because its number is permitted.
+    12. For questions with multiple parts, answer each part
+    under a separate heading.
+    13. Distinguish the paper's explicitly named categories
+    from general examples, limitations, and explanations.
+    Do not place a category under the wrong heading.
+    14. Before finalizing the answer, review all retrieved
+    passages again and check whether any explicitly named
+    category relevant to the question was omitted.
+    Include missing categories only when supported by
+    the retrieved evidence.
+    15. When the question asks for types or categories,
+    identify the complete list explicitly stated in the
+    relevant section of the paper before writing the answer.
+    Use that list as the answer's structure.
+    Explain each listed type exactly once, including its
+    advantages and disadvantages when requested.
+    Do not introduce additional types from unrelated
+    sections, and do not repeat a type under another name.
+    16. Before returning the answer, verify that every
+    requested type has been covered and every factual
+    statement includes a supporting PDF page citation
+    in the format (Page N).
+
 
     Retrieved passages:
     Each [Page N] label identifies the actual PDF page number.
