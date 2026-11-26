@@ -54,9 +54,10 @@ def generate_answer(question, context, valid_pages=None):
     """Generate an answer using retrieved research paper passages."""
 
     llm = ChatOllama(
-    model="qwen2.5:7b",
+    model="qwen3:8b",
     temperature=0,
     num_ctx=16384,
+    reasoning=False,
     )
 
     allowed_pages = (
@@ -74,7 +75,16 @@ def generate_answer(question, context, valid_pages=None):
     Instructions:
     1. Examine every retrieved passage and identify information relevant to the question.
     2. Combine relevant evidence from multiple passages when necessary.
-    3. Preserve the exact technical terms, categories, numbers, and relationships from the paper.
+    3. Preserve exact technical terms, categories, numbers, and
+    relationships from the retrieved passages.
+    When a question asks about experimental evidence, describe
+    the relevant experimental setup, specific materials or stimuli,
+    procedure, experimental and control conditions, and main findings.
+    Preserve named experimental details instead of replacing them
+    with general descriptions.
+    Include quantitative comparisons when available.
+    Cite the PDF page that directly supports each experimental detail
+    and finding. Do not invent numbers or unsupported results.
     4. Do not invent information, methods, categories, or page numbers.
     5. When the question asks for categories, types, challenges,
     strategies, or applications, first identify the relevant
@@ -93,8 +103,16 @@ def generate_answer(question, context, valid_pages=None):
     9. The only permitted PDF page numbers are: {allowed_pages}.
     10. Every citation must refer to evidence on that specific PDF page.
     11. Do not cite a page merely because its number is permitted.
-    12. For questions with multiple parts, answer each part
-    under a separate heading.
+    12. For questions with multiple parts, identify every part
+    of the question before generating the answer.
+    Answer each part under a separate heading.
+    When a question asks for a comparison, explain both sides,
+    their differences, and any relevant changes or trends.
+    Include all relevant contributors supported by the evidence,
+    including those with smaller contributions.
+    Cite each statement using the PDF page label of the
+    passage that directly supports that statement.
+    Do not omit any requested part of the question.
     13. Distinguish the paper's explicitly named categories
     from general examples, limitations, and explanations.
     Do not place a category under the wrong heading.
@@ -141,8 +159,8 @@ def generate_answer(question, context, valid_pages=None):
     except ResponseError as error:
         if error.status_code == 404:
             raise RuntimeError(
-                "The required model 'qwen2.5:7b' is not installed. "
-                "Please download it using 'ollama pull qwen2.5:7b'."
+                "The required model 'qwen3:8b' is not installed. "
+                "Please download it using 'ollama pull qwen3:8b'."
             ) from error
         raise RuntimeError(f"Ollama returned an error: {error.error}") from error
 
