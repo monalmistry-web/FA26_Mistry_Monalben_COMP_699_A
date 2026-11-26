@@ -1,14 +1,26 @@
-import streamlit as st
 import hashlib
 import re
+import time
+from itertools import zip_longest
 
-from ingestion.pdf_loader import extract_pages_from_pdf
-from ingestion.text_splitter import split_pages_into_chunks
-from retrieval.vector_store import (create_vector_store,add_chunks_to_vector_store,search_similar_chunks,search_mmr_chunks)
+import streamlit as st
+
 from generation.answer_generator import (
     generate_answer,
     validate_answer_citations,
 )
+from ingestion.pdf_loader import extract_pages_from_pdf
+from ingestion.text_splitter import split_pages_into_chunks
+from retrieval.vector_store import (
+    add_chunks_to_vector_store,
+    create_vector_store,
+    expand_with_neighbor_chunks,
+    search_hybrid_chunks,
+    search_mmr_chunks,
+    search_similar_chunks,
+    split_question_into_queries,
+)
+
 
 def is_reference_list_chunk(text):
     """Identify chunks containing multiple bibliography entries."""
@@ -57,36 +69,70 @@ if uploaded_file is not None:
         st.subheader("Search Your Research Paper")
         question = st.text_input("Enter a question about your research paper:")
 
-        retrieval_method = st.radio("Select retrieval method:", ["Similarity Search", "MMR"],horizontal=True)
+        retrieval_method = st.radio("Select retrieval method:",["Similarity Search", "MMR", "Hybrid Search"],horizontal=True,)
 
         if st.button("Search"):
             if question.strip():
                 with st.spinner("Searching for relevant passages..."):
+                    retrieval_start = time.perf_counter()
                     vector_store = create_vector_store()
-                    if retrieval_method == "Similarity Search":
-                        results=search_similar_chunks(
-                            vector_store,
-                            question,
-                            source_id,
-                            k=5)
-                    else:
-                        results=search_mmr_chunks(
-                            vector_store,
-                            question,
-                            source_id,
-                            k=5
-                        )
+                    queries = split_question_into_queries(question)
 
-                if results:
-                    # Display the retrived passages.
+                    results = []
+                    seen_chunks = set()
+                    query_results = []
+
+                    # Retrieve up to 4 passages per query.
+                    k_per_query = 4
+
+                    for query in queries:
+                        if retrieval_method == "Similarity Search":
+                            retrieved = search_similar_chunks(
+                                vector_store, query, source_id, k=k_per_query)
+                        elif retrieval_method == "MMR":
+                            retrieved = search_mmr_chunks(
+                                vector_store, query, source_id, k=k_per_query)
+                        else:
+                            retrieved = search_hybrid_chunks(
+                                vector_store, query, source_id, k=k_per_query)
+                        retrieved = [
+                            doc for doc in retrieved
+                            if not is_reference_list_chunk(doc.page_content)]
+                        expanded = expand_with_neighbor_chunks(
+                            vector_store, retrieved, source_id, max_chunks=20
+                        )
+                        query_results.append(expanded)
+                retrieval_time = time.perf_counter() - retrieval_start
+                st.write(f"Retrieval time: {retrieval_time:.2f} seconds")
+
+                if query_results:
+                    for group in zip_longest(*query_results):
+                        for result in group:
+                            if result is None:
+                                continue
+                            chunk_key = (
+                                result.metadata.get("page"),
+                                result.page_content,
+                            )
+                            if chunk_key not in seen_chunks:
+                                seen_chunks.add(chunk_key)
+                                results.append(result)
+                            if len(results) >= 20:
+                                break
+                        if len(results) >= 20:
+                            break
+
+                    # Display the retrieved passages.
                     for index, result in enumerate(results, start=1):
                         st.write(f"**Result {index} - Page {result.metadata['page']}**")
 
                         st.write(result.page_content)
                     # Prepare context for the language model.
                     context_results = [
-                          result for result in results
-                          if not is_reference_list_chunk(result.page_content)]
+                        result for result in results
+                        if not is_reference_list_chunk(result.page_content)]
+
+                    # Preserve retrieval ranking rather than grouping passages by page.
                     if not context_results:
                          st.warning(
                               "No usable passages were found after filtering reference entries.")
@@ -103,7 +149,13 @@ if uploaded_file is not None:
                     }
 
                     with st.spinner("Generating answer..."):
+                        start_time = time.perf_counter()
+
                         answer = generate_answer(question, context, valid_pages)
+
+                        generation_time = time.perf_counter() - start_time
+
+                    st.write(f"Answer generation time: {generation_time:.2f} seconds")
 
                     st.subheader("Generated Answer")
                     st.write(answer)
@@ -122,6 +174,5 @@ if uploaded_file is not None:
             else:
                 st.warning("Please enter a question.")
 
-        
     except Exception as error:
         st.error(str(error))

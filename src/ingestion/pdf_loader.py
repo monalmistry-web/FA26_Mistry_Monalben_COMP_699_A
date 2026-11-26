@@ -1,6 +1,7 @@
 from pypdf import PdfReader
 from pypdf.errors import PdfReadError
 
+
 def extract_pages_from_pdf(pdf_file):
     """
     Extracts text from a PDF file."""

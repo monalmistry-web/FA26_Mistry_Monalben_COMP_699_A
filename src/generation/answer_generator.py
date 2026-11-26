@@ -1,33 +1,45 @@
-from langchain_ollama import ChatOllama
-from ollama import ResponseError
-from httpx import ConnectError, TimeoutException
 import re
 
+from httpx import ConnectError, TimeoutException
+from langchain_ollama import ChatOllama
+from ollama import ResponseError
+
+
 def validate_answer_citations(answer, valid_pages):
-    """Validate PDF page citations, including page ranges."""
+    """Validate single PDF page citations, page lists, and ranges."""
 
     valid_pages = {int(page) for page in valid_pages}
     cited_pages = set()
 
     citation_patterns = re.findall(
-        r"\bPages?\s+(\d+(?:\s*[-–]\s*\d+)?)",
+        r"\bPages?\s+("
+        r"\d+(?:\s*[-–]\s*\d+)?"
+        r"(?:\s*(?:,\s*(?:and\s+)?|and\s+)"
+        r"\d+(?:\s*[-–]\s*\d+)?)*"
+        r")",
         answer,
         flags=re.IGNORECASE,
     )
 
     for citation in citation_patterns:
-        if re.search(r"[-–]", citation):
-            start, end = map(
-                int,
-                re.split(r"\s*[-–]\s*", citation)
-            )
+        page_items = re.findall(
+            r"\d+\s*[-–]\s*\d+|\d+",
+            citation,
+        )
 
-            if start <= end and end - start <= 100:
-                cited_pages.update(range(start, end + 1))
+        for item in page_items:
+            if re.search(r"[-–]", item):
+                start, end = map(
+                    int,
+                    re.split(r"\s*[-–]\s*", item),
+                )
+
+                if start <= end and end - start <= 100:
+                    cited_pages.update(range(start, end + 1))
+                else:
+                    cited_pages.update([start, end])
             else:
-                cited_pages.update([start, end])
-        else:
-            cited_pages.add(int(citation))
+                cited_pages.add(int(item))
 
     invalid_pages = cited_pages - valid_pages
 
@@ -37,12 +49,21 @@ def validate_answer_citations(answer, valid_pages):
         "is_valid": bool(cited_pages) and not invalid_pages,
     }
 
+
 def generate_answer(question, context, valid_pages=None):
     """Generate an answer using retrieved research paper passages."""
 
     llm = ChatOllama(
-        model="llama3.2",
-        temperature=0,
+    model="qwen3:8b",
+    temperature=0,
+    num_ctx=16384,
+    reasoning=False,
+    )
+
+    allowed_pages = (
+        sorted({int(page) for page in valid_pages})
+        if valid_pages is not None
+        else []
     )
 
     prompt = f"""
@@ -54,12 +75,65 @@ def generate_answer(question, context, valid_pages=None):
     Instructions:
     1. Examine every retrieved passage and identify information relevant to the question.
     2. Combine relevant evidence from multiple passages when necessary.
-    3. Preserve the exact technical terms, categories, numbers, and relationships from the paper.
+    3. Preserve exact technical terms, categories, numbers, and
+    relationships from the retrieved passages.
+    When a question asks about experimental evidence, describe
+    the relevant experimental setup, specific materials or stimuli,
+    procedure, experimental and control conditions, and main findings.
+    Preserve named experimental details instead of replacing them
+    with general descriptions.
+    Include quantitative comparisons when available.
+    Cite the PDF page that directly supports each experimental detail
+    and finding. Do not invent numbers or unsupported results.
     4. Do not invent information, methods, categories, or page numbers.
-    5. When the question asks for a list, check all passages for every relevant item before answering.
+    5. When the question asks for categories, types, challenges,
+    strategies, or applications, first identify the relevant
+    section headings and named categories in the retrieved
+    passages. Include every category supported by the evidence.
+    Preserve the category names used in the paper. Do not
+    combine categories or omit categories mentioned in
+    different passages.
     6. Give a clear, concise explanation using only the retrieved evidence.
-    7. Cite the actual supporting PDF page for each factual statement using (Page N).
+    7. Cite each factual statement using exactly (Page N).
+    N must be a page number from the retrieved passages.
+    Never use [Page N] in the generated answer.
+    Never combine citations like (Page 2, [Page 2]).
+    Never cite a page that was not retrieved.
     8. If the passages do not contain enough information, explain what is missing.
+    9. The only permitted PDF page numbers are: {allowed_pages}.
+    10. Every citation must refer to evidence on that specific PDF page.
+    11. Do not cite a page merely because its number is permitted.
+    12. For questions with multiple parts, identify every part
+    of the question before generating the answer.
+    Answer each part under a separate heading.
+    When a question asks for a comparison, explain both sides,
+    their differences, and any relevant changes or trends.
+    Include all relevant contributors supported by the evidence,
+    including those with smaller contributions.
+    Cite each statement using the PDF page label of the
+    passage that directly supports that statement.
+    Do not omit any requested part of the question.
+    13. Distinguish the paper's explicitly named categories
+    from general examples, limitations, and explanations.
+    Do not place a category under the wrong heading.
+    14. Before finalizing the answer, review all retrieved
+    passages again and check whether any explicitly named
+    category relevant to the question was omitted.
+    Include missing categories only when supported by
+    the retrieved evidence.
+    15. When the question asks for types or categories,
+    identify the complete list explicitly stated in the
+    relevant section of the paper before writing the answer.
+    Use that list as the answer's structure.
+    Explain each listed type exactly once, including its
+    advantages and disadvantages when requested.
+    Do not introduce additional types from unrelated
+    sections, and do not repeat a type under another name.
+    16. Before returning the answer, verify that every
+    requested type has been covered and every factual
+    statement includes a supporting PDF page citation
+    in the format (Page N).
+
 
     Retrieved passages:
     Each [Page N] label identifies the actual PDF page number.
@@ -84,7 +158,10 @@ def generate_answer(question, context, valid_pages=None):
 
     except ResponseError as error:
         if error.status_code == 404:
-            raise RuntimeError("The required model 'llama3.2' is not installed. " "Please download it using 'ollama pull llama3.2'.")from error
+            raise RuntimeError(
+                "The required model 'qwen3:8b' is not installed. "
+                "Please download it using 'ollama pull qwen3:8b'."
+            ) from error
         raise RuntimeError(f"Ollama returned an error: {error.error}") from error
 
 
