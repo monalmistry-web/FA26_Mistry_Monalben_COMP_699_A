@@ -54,18 +54,22 @@ def generate_answer(question, context, valid_pages=None):
     """Generate an answer using retrieved research paper passages."""
 
     llm = ChatOllama(
-    model="qwen3:8b",
-    temperature=0,
-    num_ctx=16384,
-    reasoning=False,
+        model="qwen3:8b",
+        temperature=0,
+        num_ctx=16384,
+        reasoning=False,
     )
 
     allowed_pages = (
-        sorted({int(page) for page in valid_pages})
-        if valid_pages is not None
-        else []
+        sorted({int(page) for page in valid_pages}) if valid_pages is not None else []
     )
-
+    # Remove numeric academic references from the LLM context.
+    # Preserve PDF page labels such as [Page 9].
+    context = re.sub(
+        r"\[\s*\d+(?:\s*[,;–-]\s*\d+)*\s*\]",
+        "",
+        context,
+    )
     prompt = f"""
     You are an academic research paper assistant.
 
@@ -108,6 +112,12 @@ def generate_answer(question, context, valid_pages=None):
     Answer each part under a separate heading.
     When a question asks for a comparison, explain both sides,
     their differences, and any relevant changes or trends.
+    Keep the properties, purposes, advantages, and limitations
+    of each concept separate.
+    Do not attribute the purpose or benefit of one mechanism
+    to another mechanism.
+    Avoid generalizations that are not explicitly supported
+    by the retrieved evidence.
     Include all relevant contributors supported by the evidence,
     including those with smaller contributions.
     Cite each statement using the PDF page label of the
@@ -121,18 +131,20 @@ def generate_answer(question, context, valid_pages=None):
     category relevant to the question was omitted.
     Include missing categories only when supported by
     the retrieved evidence.
-    15. When the question asks for types or categories,
-    identify the complete list explicitly stated in the
-    relevant section of the paper before writing the answer.
-    Use that list as the answer's structure.
-    Explain each listed type exactly once, including its
+    15. When the question asks for types, categories,
+    applications, strategies, or challenges, identify the
+    complete list of relevant section headings and subheadings
+    explicitly stated in the retrieved passages.
+    Preserve the paper's original hierarchy of categories
+    and their corresponding subcategories.
+    Use this hierarchy as the answer's structure.
+    Include every relevant named subcategory, even when
+    its description appears in a different passage.
+    Keep each subcategory under its original parent category.
+    Explain each listed item exactly once, including its
     advantages and disadvantages when requested.
-    Do not introduce additional types from unrelated
-    sections, and do not repeat a type under another name.
-    16. Before returning the answer, verify that every
-    requested type has been covered and every factual
-    statement includes a supporting PDF page citation
-    in the format (Page N).
+    Do not introduce additional categories from unrelated
+    sections or repeat an item under another name.
 
 
     Retrieved passages:
@@ -151,10 +163,14 @@ def generate_answer(question, context, valid_pages=None):
         response = llm.invoke(prompt)
 
     except ConnectError as error:
-        raise RuntimeError( "Ollama is not running. Please start Ollama and try again.")from error
+        raise RuntimeError(
+            "Ollama is not running. Please start Ollama and try again."
+        ) from error
 
     except TimeoutException as error:
-        raise RuntimeError("Ollama took too long to respond. Please try again.")from error
+        raise RuntimeError(
+            "Ollama took too long to respond. Please try again."
+        ) from error
 
     except ResponseError as error:
         if error.status_code == 404:
@@ -163,7 +179,6 @@ def generate_answer(question, context, valid_pages=None):
                 "Please download it using 'ollama pull qwen3:8b'."
             ) from error
         raise RuntimeError(f"Ollama returned an error: {error.error}") from error
-
 
     answer = response.content
 
@@ -175,9 +190,11 @@ def generate_answer(question, context, valid_pages=None):
     )
 
     if not citations:
-        allowed_pages = sorted(
-            {int(page) for page in valid_pages}
-        ) if valid_pages is not None else []
+        allowed_pages = (
+            sorted({int(page) for page in valid_pages})
+            if valid_pages is not None
+            else []
+        )
 
         retry_prompt = f"""
         You previously answered this research question without

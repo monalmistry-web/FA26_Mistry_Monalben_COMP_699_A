@@ -174,5 +174,5 @@ if uploaded_file is not None:
             else:
                 st.warning("Please enter a question.")
 
-    except Exception as error:
+    except Exception as error: # noqa: BLE001
         st.error(str(error))

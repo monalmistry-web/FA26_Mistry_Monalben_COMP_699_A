@@ -2,6 +2,7 @@ from unittest.mock import patch
 
 from ingestion.embedding import get_embedding_model
 
+
 def test_embedding_model():
     """ Test that the local embedding model is created"""
 

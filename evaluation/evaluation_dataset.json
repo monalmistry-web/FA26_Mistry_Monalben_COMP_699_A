@@ -1,0 +1,157 @@
+[
+  {
+    "id": "RAG_Q1",
+    "pdf": "rag_survey.pdf",
+    "question": "What are the three main components of the Retrieval-Augmented Large Language Model (RA-LLM) framework, and what does each component do?",
+    "expected_answer": [
+      "Retrieval: Finds relevant information from an external database based on the user's query.",
+      "Generation: Uses the retrieved information to generate an answer.",
+      "Augmentation: Connects retrieval and generation by adding retrieved information to the generation process."
+    ],
+    "expected_pages": [2]
+  },
+  {
+    "id": "RAG_Q2",
+    "pdf": "rag_survey.pdf",
+    "question": "What are the four main training strategies for RA-LLMs discussed in the paper?",
+    "expected_answer": [
+      "Training-free: Uses retrieved information without additional training.",
+      "Independent training: Trains the retriever and language model separately.",
+      "Sequential training: Trains one component first and then trains the other while keeping the first component fixed.",
+      "Joint training: Trains the retriever and generator together at the same time."
+    ],
+    "expected_pages": [5, 6]
+  },
+  {
+    "id": "RAG_Q3",
+    "pdf": "rag_survey.pdf",
+    "question": "What are the major application areas of RA-LLMs, and what future challenges does the paper identify?",
+    "expected_answer": [
+      "NLP applications: Question answering, chatbots, and fact verification.",
+      "Downstream tasks: Recommendations and software engineering.",
+      "Domain-specific applications: AI for Science and Finance.",
+      "Building trustworthy RA-LLMs.",
+      "Supporting multiple languages.",
+      "Developing multimodal RA-LLMs.",
+      "Improving the quality of external knowledge."
+    ],
+    "expected_pages": [7, 8]
+  },
+  {
+    "id": "TRANSFORMER_Q1",
+    "pdf": "Attention Is All You Need.pdf",
+    "question": "What are the main components of the Transformer architecture, and what is the role of the encoder and decoder?",
+    "expected_answer": [
+      "The Transformer uses an encoder-decoder architecture based entirely on attention mechanisms.",
+      "The encoder processes the input sequence and creates contextual representations.",
+      "The decoder uses the encoder's output and previously generated tokens to produce the output sequence.",
+      "The encoder and decoder are built from stacked layers containing attention and feed-forward networks."
+    ],
+    "expected_pages": [2, 3]
+  },
+  {
+    "id": "TRANSFORMER_Q2",
+    "pdf": "Attention Is All You Need.pdf",
+    "question": "What is the difference between scaled dot-product attention and multi-head attention, and why does the Transformer use multi-head attention?",
+    "expected_answer": [
+      "Scaled dot-product attention calculates relationships between queries and keys, applies softmax to get weights, and uses those weights to combine values.",
+      "Multi-head attention performs several attention operations in parallel using different learned projections.",
+      "The results from the different attention heads are combined.",
+      "Multi-head attention helps the model focus on information from different representation spaces and positions."
+    ],
+    "expected_pages": [4, 5]
+  },
+  {
+    "id": "TRANSFORMER_Q3",
+    "pdf": "Attention Is All You Need.pdf",
+    "question": "What advantages does the Transformer demonstrate over previous models, and what results does the paper report for machine translation?",
+    "expected_answer": [
+      "The Transformer removes recurrence and relies entirely on attention mechanisms.",
+      "It allows more parallelization and faster training than recurrent or convolutional models.",
+      "It achieves a BLEU score of 28.4 on the WMT 2014 English-to-German task.",
+      "It achieves a BLEU score of 41.8 on the WMT 2014 English-to-French task, as reported in the abstract.",
+      "The paper also demonstrates that the Transformer performs well on English constituency parsing."
+    ],
+    "expected_pages": [1, 6, 7, 8, 9]
+  },
+  {
+    "id": "RENEWABLE_Q1",
+    "pdf": "Energy Strategy Reviews.pdf",
+    "question": "According to the paper, how has renewable energy generation changed compared with fossil fuel generation, and which renewable energy sources contribute the most?",
+    "expected_answer": [
+      "Renewable energy generation has increased significantly over the years.",
+      "Fossil fuel generation has remained higher overall, but the gap between fossil fuels and renewable energy has decreased.",
+      "Hydropower contributes the largest share of renewable electricity generation.",
+      "Solar and wind energy have also shown significant growth.",
+      "Bioenergy and geothermal energy contribute less compared with the major renewable sources."
+    ],
+    "expected_pages": [2]
+  },
+  {
+    "id": "RENEWABLE_Q2",
+    "pdf": "Energy Strategy Reviews.pdf",
+    "question": "What are the main types of generators used in wind turbines, and what are their advantages?",
+    "expected_answer": [
+      "Squirrel-Cage Induction Generator (SCIG): Cost-effective, reliable, simple to use, and robust.",
+      "Doubly Fed Induction Generator (DFIG): Supports variable-speed operation and helps control active and reactive power.",
+      "Electrically Excited Synchronous Generator (EESG): Commonly used in large direct-drive wind turbines.",
+      "Permanent Magnet Synchronous Generator (PMSG): Efficient at partial loads, requires less maintenance, and has fewer moving parts."
+    ],
+    "expected_pages": [9, 10]
+  },
+  {
+    "id": "RENEWABLE_Q3",
+    "pdf": "Energy Strategy Reviews.pdf",
+    "question": "What is a hydrogen fuel cell, how does it generate electricity, and what are its main advantages?",
+    "expected_answer": [
+      "A hydrogen fuel cell uses an electrochemical reaction to generate electricity.",
+      "It requires hydrogen fuel and oxygen to operate.",
+      "Its three main components are the anode, cathode, and electrolyte.",
+      "Hydrogen combines with oxygen, producing electricity and water.",
+      "Fuel cells can reach around 60% efficiency when converting energy into electricity.",
+      "They can reduce environmental pollution compared with conventional electricity generation."
+    ],
+    "expected_pages": [16, 17]
+  },
+  {
+    "id": "SLEEP_Q1",
+    "pdf": "System consolidation of memory during sleep.pdf",
+    "question": "What is the two-stage memory model, and what roles do the hippocampus and neocortex play in forming long-term memories?",
+    "expected_answer": [
+      "The model explains how new memories move from temporary storage to long-term storage.",
+      "The hippocampus acts as a temporary memory store that learns information quickly.",
+      "The neocortex acts as a long-term memory store.",
+      "During consolidation, newly learned memories are repeatedly reactivated and gradually reorganized.",
+      "This process helps strengthen long-term memories and connect new information with existing knowledge."
+    ],
+    "expected_pages": [1, 2]
+  },
+  {
+    "id": "SLEEP_Q2",
+    "pdf": "System consolidation of memory during sleep.pdf",
+    "question": "How does memory reactivation during slow-wave sleep help improve memory, according to the experiments discussed in the paper?",
+    "expected_answer": [
+      "Memories learned during the day can be reactivated during sleep.",
+      "The paper describes an experiment where participants learned card locations while smelling a rose scent.",
+      "Researchers presented the same scent again during sleep to reactivate the memories.",
+      "Memory improved when the scent was presented during slow-wave sleep (SWS).",
+      "The same improvement was not observed when the scent was presented during REM sleep or while participants were awake.",
+      "The findings suggest that slow-wave sleep plays an important role in memory consolidation."
+    ],
+    "expected_pages": [4, 5]
+  },
+  {
+    "id": "SLEEP_Q3",
+    "pdf": "System consolidation of memory during sleep.pdf",
+    "question": "How can sleep change the quality of memories, and what evidence does the paper provide that sleep helps people gain explicit knowledge from implicitly learned information?",
+    "expected_answer": [
+      "Sleep helps reorganize newly learned memories.",
+      "It can help people identify important patterns and hidden structures in information.",
+      "The paper discusses the Number Reduction Task, where participants practiced solving number sequences.",
+      "After sleep, more than twice as many participants gained insight into the hidden rule compared with the wakefulness groups.",
+      "Slow-wave sleep was found to be important for this improvement.",
+      "The findings suggest that sleep can help transform implicit knowledge into explicit and conscious knowledge."
+    ],
+    "expected_pages": [8, 9]
+  }
+]
