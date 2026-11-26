@@ -1,9 +1,9 @@
 from io import BytesIO
-from pypdf.errors import PdfReadError
-from pypdf import PdfWriter
-from unittest.mock import patch, MagicMock
-import pytest
+from unittest.mock import MagicMock, patch
 
+import pytest
+from pypdf import PdfWriter
+from pypdf.errors import PdfReadError
 
 from ingestion.pdf_loader import extract_pages_from_pdf
 
@@ -56,6 +56,11 @@ def test_extract_pages_from_encrypted_pdf():
 def test_extract_pages_from_invalid_pdf():
     """ Test that invalid PDF files produce a clear error."""
 
-    with patch("ingestion.pdf_loader.PdfReader", side_effect=PdfReadError("Invalid PDF file")):
-        with pytest.raises(ValueError, match="Unable to read the PDF"):
+    with (
+        patch(
+            "ingestion.pdf_loader.PdfReader",
+            side_effect=PdfReadError("Invalid PDF file"),
+        ),
+        pytest.raises(ValueError, match="Unable to read the PDF"),
+    ):
             extract_pages_from_pdf("invalid.pdf")

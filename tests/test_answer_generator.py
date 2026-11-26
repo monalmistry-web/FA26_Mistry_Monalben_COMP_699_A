@@ -1,5 +1,6 @@
 from generation.answer_generator import generate_answer
 
+
 def test_generate_answer():
     question = "What is retrieval-augmented generation?"
 

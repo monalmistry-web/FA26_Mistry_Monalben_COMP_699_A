@@ -1,5 +1,6 @@
 from ingestion.text_splitter import split_pages_into_chunks
 
+
 def test_split_pages_into_chunks():
     """ Test that PDF page text is split into chunks with page numbers."""
 

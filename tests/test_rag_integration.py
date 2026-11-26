@@ -3,8 +3,9 @@ from unittest.mock import patch
 from langchain_chroma import Chroma
 from langchain_core.embeddings import Embeddings
 
-from retrieval.vector_store import(add_chunks_to_vector_store,search_similar_chunks)
 from generation.answer_generator import generate_answer
+from retrieval.vector_store import add_chunks_to_vector_store, search_similar_chunks
+
 
 class FakeEmbeddings(Embeddings):
     """ Provide simple embeddings for integration testing."""
