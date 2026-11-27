@@ -1,0 +1,354 @@
+/* ========================================
+   Academic Research Paper Assistant
+   Research AI Workspace — Navy & Teal
+   ======================================== */
+
+:root {
+    --navy: #132e48;
+    --teal: #0f766e;
+    --steel-blue: #407c9d;
+    --background: #f0f4f8;
+    --surface: #ffffff;
+    --text: #334155;
+    --muted: #64748b;
+    --border: #dce5ed;
+    --light-teal: #f0f8f6;
+    --light-blue: #eef4f9;
+}
+
+/* Application background */
+
+.stApp {
+    background-color: var(--background);
+}
+
+/* Main content width and spacing */
+
+.block-container {
+    max-width: 1280px;
+    padding-top: 4rem;
+    padding-bottom: 1.5rem;
+    padding-left: 2rem;
+    padding-right: 2rem;
+}
+
+[data-testid="stVerticalBlock"] {
+    gap: 0.75rem;
+}
+
+/* Typography */
+
+html,
+body,
+.stApp {
+    font-family: "Inter", -apple-system,
+        BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+h1,
+h2,
+h3,
+h4 {
+    color: var(--navy);
+    letter-spacing: -0.025em;
+}
+
+h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+h3 {
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+/* Premium application header */
+
+.workspace-header {
+    background: linear-gradient(
+        120deg,
+        #132e48 0%,
+        #23465f 100%
+    );
+    border-radius: 16px;
+    padding: 28px 32px;
+    margin-bottom: 8px;
+    box-shadow: 0 4px 16px rgba(19, 46, 72, 0.12);
+}
+
+.workspace-header h1 {
+    color: #ffffff;
+    font-size: 30px;
+    font-weight: 700;
+    margin: 8px 0;
+    padding: 0;
+}
+
+.workspace-header p {
+    color: #b8ccdc;
+    font-size: 15px;
+    margin: 0;
+}
+
+.workspace-eyebrow {
+    color: #8ddbd1;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+.workspace-features {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin-top: 18px;
+    color: #c3d6e7;
+    font-size: 13px;
+}
+
+/* Content cards */
+
+[data-testid="stVerticalBlockBorderWrapper"],
+[data-testid="stVerticalBlock"][style*="border"] {
+    background-color: var(--surface);
+    border-radius: 14px;
+    border-color: var(--border);
+    box-shadow: 0 2px 8px rgba(19, 46, 72, 0.04);
+}
+
+/* Metric cards */
+
+[data-testid="stMetric"] {
+    background-color: var(--light-blue);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+}
+
+[data-testid="stMetricLabel"] {
+    color: var(--muted);
+}
+
+[data-testid="stMetricValue"] {
+    color: var(--navy);
+    font-size: 28px;
+    font-weight: 700;
+}
+
+/* Buttons */
+
+.stButton > button {
+    border-radius: 10px;
+    font-weight: 600;
+    min-height: 44px;
+    transition: background-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.stButton > button[kind="primary"]:not(:disabled) {
+    background-color: var(--teal);
+    color: #ffffff;
+    border: 1px solid var(--teal);
+}
+
+.stButton > button[kind="primary"]:not(:disabled):hover {
+    background-color: #115e59;
+    border-color: #115e59;
+    box-shadow: 0 3px 10px rgba(15, 118, 110, 0.18);
+}
+
+/* File uploader */
+
+[data-testid="stFileUploaderDropzone"] {
+    background-color: var(--light-blue);
+    border: 1px dashed #b7cbd9;
+    border-radius: 12px;
+    padding: 18px;
+}
+
+/* Question input */
+
+.stTextArea textarea {
+    background-color: #f8fafc;
+    color: var(--text);
+    border-radius: 10px;
+    font-size: 15px;
+    line-height: 1.6;
+}
+
+/* Retrieval method options */
+
+[data-testid="stRadio"] [role="radiogroup"] {
+    gap: 8px;
+}
+
+[data-testid="stRadio"] label[data-baseweb="radio"] {
+    background-color: #f8fafc;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px;
+    margin: 0;
+    transition: background-color 0.2s ease;
+}
+
+[data-testid="stRadio"] label[data-baseweb="radio"]:hover {
+    background-color: #e7f3f1;
+    border-color: #65b4aa;
+}
+
+[data-testid="stRadio"] label:has(input:checked) {
+    background-color: #e7f3f1;
+    border-color: #65b4aa;
+}
+
+/* Expandable sections */
+
+[data-testid="stExpander"] {
+    background-color: var(--surface);
+    border-radius: 10px;
+}
+
+[data-testid="stExpander"] summary {
+    color: var(--navy);
+    font-weight: 500;
+}
+
+/* Generated answer panel */
+
+.st-key-answer_panel {
+    background-color: var(--light-teal);
+    border: 1px solid #cce5df;
+    border-left: 4px solid var(--teal);
+    border-radius: 12px;
+    padding: 20px;
+    line-height: 1.7;
+}
+
+/* Reduce excessive divider spacing */
+
+hr {
+    border-color: var(--border);
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+/* Footer */
+
+.workspace-footer {
+    text-align: center;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.7;
+    padding: 18px 0 8px;
+    margin-top: 12px;
+}
+
+.workspace-footer strong {
+    color: var(--navy);
+}
+
+/* Smaller screens */
+
+@media (max-width: 768px) {
+    .block-container {
+        padding-left: 1rem;
+        padding-right: 1rem;
+        padding-top: 1.5rem;
+    }
+
+    .workspace-header {
+        padding: 20px;
+    }
+
+    .workspace-header h1 {
+        font-size: 23px;
+    }
+
+    [data-testid="stMetricValue"] {
+        font-size: 22px;
+    }
+}
+/* Main workspace cards */
+[data-testid="stHorizontalBlock"]:has(
+    [data-testid="stFileUploader"]
+) > [data-testid="stColumn"] {
+    background-color: #FFFFFF;
+    border: 1px solid #DCE5ED;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 4px 14px rgba(19, 46, 72, 0.05);
+}
+
+/* Document and performance metric cards */
+[data-testid="stMetric"] {
+    background-color: #F8FAFC;
+    border: 1px solid #DCE5ED;
+    border-radius: 12px;
+    padding: 16px;
+}
+/* Retrieval method cards */
+[data-testid="stRadio"] [role="radiogroup"] {
+    gap: 8px;
+}
+
+[data-testid="stRadio"] [role="radiogroup"] > label {
+    display: flex;
+    width: 100%;
+    box-sizing: border-box;
+    background-color: #F8FAFC;
+    border: 1px solid #DCE5ED;
+    border-radius: 10px;
+    padding: 10px 14px;
+    margin: 0;
+    cursor: pointer;
+}
+
+[data-testid="stRadio"] [role="radiogroup"] > label:hover {
+    background-color: #F0F8F6;
+    border-color: #0F766E;
+}
+
+[data-testid="stRadio"] [role="radiogroup"] > label:has(input:checked) {
+    background-color: #EAF5F2;
+    border-color: #0F766E;
+}
+/* Information messages */
+[data-testid="stAlert"] [data-testid="stAlertContainer"][data-baseweb="notification"]:has([data-testid="stMarkdownContainer"]) {
+    border-radius: 10px;
+}
+
+[data-testid="stAlertContainer"][kind="info"] {
+    background-color: #EAF5F2 !important;
+    color: #0F766E !important;
+    border: 1px solid #CDE5DF;
+}
+
+[data-testid="stAlertContainer"][kind="info"] p {
+    color: #0F766E !important;
+}
+/* Compact header */
+.workspace-header {
+    padding: 24px 30px;
+}
+
+.workspace-header h1 {
+    margin: 8px 0;
+    padding: 0;
+}
+
+.workspace-header p {
+    margin: 8px 0 14px;
+}
+
+/* Compact footer */
+.workspace-footer {
+    margin-top: 20px;
+    padding: 16px 0;
+}
+
+.workspace-footer p {
+    margin: 5px 0;
+    font-size: 0.85rem;
+}
